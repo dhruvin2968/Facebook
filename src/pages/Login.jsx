@@ -63,9 +63,11 @@ const LoginPage = () => {
       });
       const data = await res.json();
       if (res.ok) {
+        
         alert("Login success 🎉");
-        navigate("/")
+        navigate("/home")
         console.log("User:", data.user);
+        localStorage.setItem('userId', data.user._id);
       } else {
         alert(data.error);
       }
@@ -198,9 +200,9 @@ const LoginPage = () => {
 
               {/* Forgot Password */}
               <div className="text-center">
-                <a href="#" className="text-blue-600 hover:text-blue-700 text-sm hover:underline">
+                <div className="text-blue-600 hover:text-blue-700 text-sm hover:underline">
                   Forgotten password?
-                </a>
+                </div>
               </div>
 
               {/* Divider */}
@@ -226,13 +228,13 @@ const LoginPage = () => {
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="text-center space-y-2 text-sm text-gray-600">
                 <div>
-                  <a href="#" className="hover:underline">Create a Page</a>
+                  <div className="hover:underline">Create a Page</div>
                   {' '}for a celebrity, brand or business.
                 </div>
                 <div className="flex justify-center space-x-4 text-xs">
-                  <a href="#" className="hover:underline">Terms</a>
-                  <a href="#" className="hover:underline">Privacy Policy</a>
-                  <a href="#" className="hover:underline">Cookies</a>
+                  <div className="hover:underline">Terms</div>
+                  <div className="hover:underline">Privacy Policy</div>
+                  <div className="hover:underline">Cookies</div>
                 </div>
               </div>
             </div>

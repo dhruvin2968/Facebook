@@ -1,39 +1,91 @@
 import { Camera, Edit3, ChevronDown, Plus } from 'lucide-react';
 import { useState } from 'react';
-
+import { useEffect } from 'react';
 export const ProfileHeader = () => {
   const [activeTab, setActiveTab] = useState('Posts');
   const [coverUrl, setCoverUrl] = useState(''); // Cover photo URL state
-  const [uploading, setUploading] = useState(false);
+  const [profileUrl, setProfileUrl] = useState(''); // Profile photo URL state
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
   const tabs = ['Posts', 'About', 'Friends', 'Photos', 'Videos', 'Check-ins', 'More'];
 
- const uploadCoverPhoto = async (file) => {
-  setUploading(true);
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', 'facebook');
+  const userId=localStorage.getItem('userId');
 
-  try {
-    const res = await fetch(
-      'https://api.cloudinary.com/v1_1/dfcioifl2/image/upload',
-      { method: 'POST', body: formData }
-    );
-    const data = await res.json();
-    setCoverUrl(data.secure_url);
+  useEffect(() => {
+  const userId = localStorage.getItem("userId");
+  if (!userId) return;
 
-    // Send to backend to update MongoDB
-    await fetch('http://localhost:5000/api/users/cover-photo', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ coverPhotoUrl: data.secure_url })
-    });
-  } catch (err) {
-    console.error('Upload failed:', err);
-  }
-  setUploading(false);
-};
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/profile/${userId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setCoverUrl(data.user.coverPhotoUrl || "");
+        setProfileUrl(data.user.profilePicUrl || "");
+      } else {
+        console.error(data.error);
+      }
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+    }
+  };
+
+  fetchUser();
+}, []);
+  const uploadCoverPhoto = async (file) => {
+    setUploadingCover(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'facebook');
+
+    try {
+      const res = await fetch(
+        'https://api.cloudinary.com/v1_1/dfcioifl2/image/upload',
+        { method: 'POST', body: formData }
+      );
+      const data = await res.json();
+      setCoverUrl(data.secure_url);
+
+      // Send to backend to update MongoDB
+      await fetch('http://localhost:5000/api/users/cover-photo', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId,coverPhotoUrl: data.secure_url })
+      });
+    } catch (err) {
+      console.error('Cover photo upload failed:', err);
+    }
+    setUploadingCover(false);
+  };
+  const uploadProfilePhoto = async (file) => {
+    setUploadingProfile(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'facebook');
+
+    try {
+      const res = await fetch(
+        'https://api.cloudinary.com/v1_1/dfcioifl2/image/upload',
+        { method: 'POST', body: formData }
+      );
+      const data = await res.json();
+      setProfileUrl(data.secure_url);
+
+      // Send to backend to update MongoDB
+      await fetch('http://localhost:5000/api/users/profile-photo', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({userId, profilePicUrl: data.secure_url })
+      });
+    } catch (err) {
+      console.error('Profile photo upload failed:', err);
+    }
+    setUploadingProfile(false);
+  };
 
   return (
     <div className="bg-white shadow-sm">
@@ -53,7 +105,7 @@ export const ProfileHeader = () => {
           <label className="absolute bottom-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer transition-all">
             <Camera className="w-4 h-4" />
             <span className="text-sm font-medium">
-              {uploading ? 'Uploading...' : 'Edit cover photo'}
+              {uploadingCover ? 'Uploading...' : 'Edit cover photo'}
             </span>
             <input
               type="file"
@@ -69,10 +121,38 @@ export const ProfileHeader = () => {
           <div className="flex flex-col lg:flex-row lg:items-end lg:space-x-6 -mt-20 lg:-mt-8">
             {/* Profile Picture */}
             <div className="relative mb-4 lg:mb-0">
-              <div className="w-40 h-40 lg:w-44 lg:h-44 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full border-4 border-white shadow-lg mx-auto lg:mx-0"></div>
-              <button className="absolute bottom-2 right-2 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center shadow-lg transition-colors">
-                <Camera className="w-5 h-5 text-gray-600" />
-              </button>
+              <div 
+                className="w-40 h-40 lg:w-44 lg:h-44 rounded-full border-4 border-white shadow-lg mx-auto lg:mx-0 overflow-hidden"
+                style={{
+                  backgroundImage: profileUrl ? `url(${profileUrl})` : undefined,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              >
+                {!profileUrl && (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                    <div className="text-white text-4xl font-bold">JD</div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Profile Photo Upload Button */}
+              <label className="absolute bottom-2 right-2 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center shadow-lg transition-colors cursor-pointer">
+                <Camera className={`w-5 h-5 text-gray-600 ${uploadingProfile ? 'animate-pulse' : ''}`} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files && uploadProfilePhoto(e.target.files[0])}
+                />
+              </label>
+              
+              {/* Loading indicator for profile photo */}
+              {uploadingProfile && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
             </div>
 
             {/* Name & Actions */}
@@ -119,3 +199,5 @@ export const ProfileHeader = () => {
     </div>
   );
 };
+
+export default ProfileHeader;

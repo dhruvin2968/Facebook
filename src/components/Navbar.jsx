@@ -7,7 +7,9 @@ import {
   ShoppingBag, 
   Users, 
   Menu,} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 export const Navbar = () => {
+  const navigate = useNavigate();
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 fixed top-0 w-full z-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -55,7 +57,8 @@ export const Navbar = () => {
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
               </div>
             </div>
-            <div className="w-8 h-8 bg-blue-600 rounded-full cursor-pointer"></div>
+            <button  onClick={() => navigate("/profile")} className="focus:outline-none">
+            <div className="w-8 h-8 bg-blue-600 rounded-full cursor-pointer"></div></button>
           </div>
         </div>
       </div>

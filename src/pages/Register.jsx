@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, AlertCircle, ArrowLeft, Check, Calendar, ChevronDown } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
 const RegisterPage = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -123,15 +124,19 @@ const RegisterPage = () => {
   const handleSubmit = async () => {
   if (validateStep2()) {
     setIsLoading(true);
+    const { day, month, year } = formData.birthday;
+    const formattedBirthday = new Date(`${year}-${month}-${day}`);
     try {
       const res = await fetch("http://localhost:5000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        
+        body: JSON.stringify({ ...formData, birthday: formattedBirthday })
       });
       const data = await res.json();
       if (res.ok) {
         alert("Registration successful ✅");
+          navigate("/login")
       } else {
         alert(data.error || "Something went wrong");
       }
@@ -297,9 +302,9 @@ const RegisterPage = () => {
               {/* Terms */}
               <div className="text-xs text-gray-500 mt-4">
                 By clicking Sign Up, you agree to our{' '}
-                <a href="#" className="text-blue-600 hover:underline">Terms</a>,{' '}
-                <a href="#" className="text-blue-600 hover:underline">Data Policy</a> and{' '}
-                <a href="#" className="text-blue-600 hover:underline">Cookie Policy</a>.
+                <div className="text-blue-600 hover:underline">Terms</div>,{' '}
+                <div className="text-blue-600 hover:underline">Data Policy</div> and{' '}
+                <div className="text-blue-600 hover:underline">Cookie Policy</div>.
                 You may receive SMS notifications from us and can opt out at any time.
               </div>
             </div>
@@ -443,7 +448,7 @@ const RegisterPage = () => {
             <div className="text-sm text-blue-800">
               <div className="font-medium">Your privacy matters</div>
               <div>We use your information to help create a better experience for you. Learn more in our{' '}
-                <a href="#" className="underline hover:no-underline">Data Policy</a>.
+                <div className="underline hover:no-underline">Data Policy</div>.
               </div>
             </div>
           </div>
