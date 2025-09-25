@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+
 import {ProfileHeader} from '../components/ProfileHeader';
 import { ImageUpload } from './Test';
 import { Post } from '../components/Posts';

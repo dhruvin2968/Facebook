@@ -1,16 +1,10 @@
 import { 
-  Camera, 
-  Edit3,
-  ChevronDown,
   MapPin,
   Briefcase,
   GraduationCap,
   Heart,
   Home,
-  Calendar,
-  Plus,
-  Grid3X3,
-  Settings,
+  Calendar
 } from 'lucide-react';
 export const ProfileSidebar = () => {
   const aboutItems = [
@@ -67,7 +61,7 @@ export const ProfileSidebar = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold text-gray-900">Photos</h3>
-          <a href="#" className="text-blue-600 hover:text-blue-700 text-sm font-medium">See all photos</a>
+          <div className="text-blue-600 hover:text-blue-700 text-sm font-medium">See all photos</div>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {photos.map((photo) => (
@@ -83,7 +77,7 @@ export const ProfileSidebar = () => {
             <h3 className="text-xl font-bold text-gray-900">Friends</h3>
             <p className="text-gray-500 text-sm">2,543 friends</p>
           </div>
-          <a href="#" className="text-blue-600 hover:text-blue-700 text-sm font-medium">See all friends</a>
+          <div className="text-blue-600 hover:text-blue-700 text-sm font-medium">See all friends</div>
         </div>
         <div className="grid grid-cols-3 gap-3">
           {friends.map((friend, index) => (

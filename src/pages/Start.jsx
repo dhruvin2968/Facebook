@@ -115,13 +115,13 @@ const StartPage = () => {
       <div className="absolute bottom-0 w-full bg-white border-t border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-wrap justify-center space-x-6 text-sm text-gray-600">
-            <a href="#" className="hover:underline">English (US)</a>
-            <a href="#" className="hover:underline">Español</a>
-            <a href="#" className="hover:underline">Français</a>
-            <a href="#" className="hover:underline">العربية</a>
-            <a href="#" className="hover:underline">Português</a>
-            <a href="#" className="hover:underline">Italiano</a>
-            <a href="#" className="hover:underline">Deutsch</a>
+            <div className="hover:underline">English (US)</div>
+            <div className="hover:underline">Español</div>
+            <div className="hover:underline">Français</div>
+            <div className="hover:underline">العربية</div>
+            <div className="hover:underline">Português</div>
+            <div className="hover:underline">Italiano</div>
+            <div className="hover:underline">Deutsch</div>
           </div>
           <div className="mt-4 text-center text-xs text-gray-500">
             Facebook © 2025
