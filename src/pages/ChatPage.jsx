@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
 import { getAuth } from "firebase/auth";
 
-const socket = io("https://facebook-backend-f4m6.onrender.com"); // your socket server
+const socket = io("https://planorama-user-chat.onrender.com"); // your socket server
 
 export const ChatDashboard=()=> {
   const auth = getAuth();
