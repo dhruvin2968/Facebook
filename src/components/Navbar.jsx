@@ -49,9 +49,14 @@ export const Navbar = () => {
               <div className="bg-gray-100 rounded-full p-2 cursor-pointer hover:bg-gray-200">
                 <Menu className="w-4 h-4 text-gray-700" />
               </div>
-              <div className="bg-gray-100 rounded-full p-2 cursor-pointer hover:bg-gray-200">
-                <MessageCircle className="w-4 h-4 text-gray-700" />
-              </div>
+              <button 
+  onClick={() => navigate("/chat")} 
+  className="bg-gray-100 rounded-full p-2 cursor-pointer hover:bg-gray-200"
+>
+  <MessageCircle className="w-4 h-4 text-gray-700" />
+</button>
+
+
               <div className="bg-gray-100 rounded-full p-2 cursor-pointer hover:bg-gray-200 relative">
                 <Bell className="w-4 h-4 text-gray-700" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
