@@ -7,6 +7,7 @@ export const ProfileHeader = () => {
   const [profileUrl, setProfileUrl] = useState(''); // Profile photo URL state
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [Name, setName] = useState('John Doe');
   const tabs = ['Posts', 'About', 'Friends', 'Photos', 'Videos', 'Check-ins', 'More'];
 
   const userId=localStorage.getItem('userId');
@@ -17,11 +18,16 @@ export const ProfileHeader = () => {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/users/profile/${userId}`);
+      const res = await fetch(`https://facebook-backend-f4m6.onrender.com/api/users/profile/${userId}`);
       const data = await res.json();
       if (res.ok) {
         setCoverUrl(data.user.coverPhotoUrl || "");
         setProfileUrl(data.user.profilePicUrl || "");
+        setName(
+  `${data?.user?.firstName ?? ""} ${data?.user?.lastName ?? ""}`.trim() || "Dhruvin Mehta"
+);
+
+
       } else {
         console.error(data.error);
       }
@@ -47,7 +53,7 @@ export const ProfileHeader = () => {
       setCoverUrl(data.secure_url);
 
       // Send to backend to update MongoDB
-      await fetch('http://localhost:5000/api/users/cover-photo', {
+      await fetch('https://facebook-backend-f4m6.onrender.com/api/users/cover-photo', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +80,7 @@ export const ProfileHeader = () => {
       setProfileUrl(data.secure_url);
 
       // Send to backend to update MongoDB
-      await fetch('http://localhost:5000/api/users/profile-photo', {
+      await fetch('https://facebook-backend-f4m6.onrender.com/api/users/profile-photo', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +163,7 @@ export const ProfileHeader = () => {
 
             {/* Name & Actions */}
             <div className="flex-1 text-center lg:text-left lg:pb-6">
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">John Doe</h1>
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 pt-2">{Name}</h1>
               <p className="text-gray-600 mb-4">2.5K friends • 12 mutual friends</p>
 
               <div className="flex flex-wrap justify-center lg:justify-start gap-3">

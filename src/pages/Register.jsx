@@ -127,7 +127,7 @@ const RegisterPage = () => {
     const { day, month, year } = formData.birthday;
     const formattedBirthday = new Date(`${year}-${month}-${day}`);
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch("https://facebook-backend-f4m6.onrender.com/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         
