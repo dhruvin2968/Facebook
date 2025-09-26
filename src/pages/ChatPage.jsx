@@ -21,13 +21,13 @@ export const ChatDashboard = () => {
   const db = getFirestore();
   const [user, setUser] = useState(null);
   const [activeUsers, setActiveUsers] = useState({});
-  const [chatRooms, setChatRooms] = useState([]); // All chat rooms from Firestore
+  const [chatRooms, setChatRooms] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [allMessages, setAllMessages] = useState({}); //eslint-disable-line
+  const [allMessages, setAllMessages] = useState({});//eslint-disable-line
   const [newMsg, setNewMsg] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-  const [messageListeners, setMessageListeners] = useState({}); // Track Firestore listeners
+  const [messageListeners, setMessageListeners] = useState({});
 
   // Listen for auth state changes
   useEffect(() => {
@@ -45,7 +45,6 @@ export const ChatDashboard = () => {
 
     console.log("Loading chat rooms for user:", user.uid);
     
-    // Query all chats where current user is a participant
     const chatsRef = collection(db, "chats");
     const chatsQuery = query(chatsRef);
     
@@ -55,7 +54,6 @@ export const ChatDashboard = () => {
       snapshot.forEach((doc) => {
         const data = doc.data();
         
-        // Check if current user is a participant in this chat
         if (data.participants && data.participants.includes(user.uid)) {
           const otherParticipantUid = data.participants.find(uid => uid !== user.uid);
           const otherParticipantName = data.participantNames?.[otherParticipantUid] || "Unknown User";
@@ -70,7 +68,6 @@ export const ChatDashboard = () => {
         }
       });
       
-      // Sort by most recent activity
       userChatRooms.sort((a, b) => b.updatedAt - a.updatedAt);
       
       console.log(`Loaded ${userChatRooms.length} chat rooms:`, userChatRooms);
@@ -91,7 +88,6 @@ export const ChatDashboard = () => {
 
     console.log("Initializing socket for user:", user.uid);
 
-    // Initialize socket connection
     socket = io("https://planorama-user-chat.onrender.com", {
       transports: ["websocket", "polling"],
     });
@@ -100,7 +96,6 @@ export const ChatDashboard = () => {
       console.log("Socket connected:", socket.id);
       setIsConnected(true);
       
-      // Register user after connection is established
       socket.emit("new user", {
         uid: user.uid,
         name: user.displayName || user.email || "Anonymous",
@@ -120,14 +115,11 @@ export const ChatDashboard = () => {
     socket.on("receiveMessage", ({ roomId, from, fromUid, text }) => {
       console.log("Received message via socket:", { roomId, from, fromUid, text, currentUser: user.uid });
       
-      // Extract UIDs from roomId to check if this message belongs to current user
       const roomParts = roomId.split("_");
       const isMyRoom = roomParts.includes(user.uid);
       
       if (isMyRoom) {
         console.log("Message is for current user's room - will be saved to Firestore by sender");
-        // Note: We don't add to local state here because Firestore listener will handle it
-        // This prevents duplicate messages
       } else {
         console.log("Message not for current user's room");
       }
@@ -137,7 +129,6 @@ export const ChatDashboard = () => {
       console.error("Socket connection error:", error);
     });
 
-    // Cleanup on unmount or user change
     return () => {
       console.log("Cleaning up socket connection");
       if (socket) {
@@ -147,7 +138,6 @@ export const ChatDashboard = () => {
       setIsConnected(false);
       setActiveUsers({});
       
-      // Cleanup Firestore listeners
       Object.values(messageListeners).forEach(unsubscribe => {
         if (typeof unsubscribe === 'function') {
           unsubscribe();
@@ -163,12 +153,10 @@ export const ChatDashboard = () => {
       const roomId = getRoomId(user.uid, selectedUser.uid);
       console.log("Setting up Firestore listener for room:", roomId);
       
-      // Clean up previous listener for this room if it exists
       if (messageListeners[roomId]) {
         messageListeners[roomId]();
       }
 
-      // Create Firestore listener for this room
       const messagesRef = collection(db, "chats", roomId, "messages");
       const messagesQuery = query(messagesRef, orderBy("timestamp", "asc"));
       
@@ -180,7 +168,6 @@ export const ChatDashboard = () => {
             id: doc.id,
             ...data,
             timestamp: data.timestamp?.toDate() || new Date(),
-            // Ensure consistent display logic
             from: data.fromUid === user.uid ? "Me" : data.from
           });
         });
@@ -188,7 +175,6 @@ export const ChatDashboard = () => {
         console.log(`Loaded ${roomMessages.length} messages for room ${roomId}`, roomMessages);
         setMessages(roomMessages);
         
-        // Also update allMessages for this room
         setAllMessages(prev => ({
           ...prev,
           [roomId]: roomMessages
@@ -197,7 +183,6 @@ export const ChatDashboard = () => {
         console.error("Error listening to messages:", error);
       });
 
-      // Store the listener
       setMessageListeners(prev => ({
         ...prev,
         [roomId]: unsubscribe
@@ -208,7 +193,6 @@ export const ChatDashboard = () => {
     }//eslint-disable-next-line
   }, [selectedUser, user, db]);
 
-  // Helper function to start a new chat with any user
   const startNewChat = (userToChat) => {
     console.log("Starting new chat with:", userToChat);
     setSelectedUser({
@@ -217,7 +201,6 @@ export const ChatDashboard = () => {
     });
   };
 
-  // Generate consistent roomId
   const getRoomId = (uid1, uid2) => [uid1, uid2].sort().join("_");
 
   const sendMessage = async () => {
@@ -236,12 +219,10 @@ export const ChatDashboard = () => {
     };
 
     try {
-      // Save message to Firestore
       console.log("Saving message to Firestore:", messageData);
       const messagesRef = collection(db, "chats", roomId, "messages");
       await addDoc(messagesRef, messageData);
       
-      // Also create/update the chat room document with basic info
       const chatRoomRef = doc(db, "chats", roomId);
       await setDoc(chatRoomRef, {
         participants: [user.uid, selectedUser.uid],
@@ -257,7 +238,6 @@ export const ChatDashboard = () => {
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      // Send socket message for real-time notification
       socket.emit("privateMessage", {
         roomId,
         from: user.displayName || user.email || "Me",
@@ -269,7 +249,6 @@ export const ChatDashboard = () => {
       console.log("Message sent successfully");
     } catch (error) {
       console.error("Error sending message:", error);
-      // You could show an error toast here
     }
     
     setNewMsg("");
@@ -283,157 +262,292 @@ export const ChatDashboard = () => {
 
   if (!user) {
     return (
-      <><Headerr/>
-      <div className="flex items-center justify-center h-[80vh]">
-        
-        <div className="text-gray-500">Please log in to access chats</div>
-      </div>
+      <>
+        <Headerr/>
+        <div className="flex items-center justify-center h-screen bg-gray-50">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.546 20.2A1.3 1.3 0 0 0 3.8 21.454l3.032-.892A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Messenger</h2>
+            <p className="text-gray-600">Please log in to start chatting with friends</p>
+          </div>
+        </div>
       </>
     );
   }
 
   return (
-    <div className="grid grid-cols-4 h-[80vh] gap-4">
-      {/* Sidebar */}
-
-      <div className="col-span-1 bg-gray-100 rounded-2xl p-4 shadow">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Chats</h2>
-          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} title={isConnected ? 'Connected' : 'Disconnected'}></div>
-        </div>
-        
-        <div className="text-sm text-gray-600 mb-4">
-          You: {user.displayName || user.email || "Anonymous"}
-        </div>
-
-        {/* Chat Rooms Section */}
-        {chatRooms.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Chats</h3>
-            <ul className="space-y-2">
-              {chatRooms.map((room) => {
-                const isOnline = activeUsers[room.otherParticipantUid];
-                const isSelected = selectedUser?.uid === room.otherParticipantUid;
-                
-                return (
-                  <li
-                    key={room.roomId}
-                    onClick={() => startNewChat(room)}
-                    className={`cursor-pointer p-3 rounded-lg transition-colors ${
-                      isSelected
-                        ? "bg-blue-500 text-white"
-                        : "bg-white hover:bg-blue-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                        <span className="font-medium">{room.otherParticipantName}</span>
-                      </div>
-                      {isOnline && <span className="text-xs opacity-75">Online</span>}
-                    </div>
-                    {room.lastMessage && (
-                      <p className={`text-xs mt-1 truncate ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
-                        {room.lastMessage.from}: {room.lastMessage.text}
-                      </p>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-
-        {/* Active Users Section (for starting new chats) */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Start New Chat</h3>
-          <ul className="space-y-2">
-            {Object.entries(activeUsers).length === 0 ? (
-              <li className="text-gray-400 text-sm">No other users online</li>
-            ) : (
-              Object.entries(activeUsers).map(([uid, u]) => {
-                // Don't show current user or users we already have chats with
-                const alreadyHaveChat = chatRooms.some(room => room.otherParticipantUid === uid);
-                
-                return uid !== user.uid && !alreadyHaveChat && (
-                  <li
-                    key={uid}
-                    onClick={() => startNewChat({ uid, name: u.name })}
-                    className={`cursor-pointer p-2 rounded-lg transition-colors ${
-                      selectedUser?.uid === uid
-                        ? "bg-blue-500 text-white"
-                        : "bg-white hover:bg-blue-100"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span>{u.name}</span>
-                    </div>
-                  </li>
-                );
-              })
-            )}
-          </ul>
-        </div>
-      </div>
-
-      {/* Chat Window */}
-      <div className="col-span-3 flex flex-col bg-white rounded-2xl shadow">
-        {selectedUser ? (
-          <>
-            <div className="p-4 border-b font-semibold text-lg bg-blue-50 rounded-t-2xl">
-              Chat with {selectedUser.name}
+    <>
+      <Headerr/>
+      <div className="flex h-screen bg-white">
+        {/* Facebook Messenger Style Sidebar */}
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-2xl font-bold text-gray-900">Chats</h1>
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <button className="p-2 hover:bg-gray-100 rounded-full">
+                  <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                  </svg>
+                </button>
+              </div>
             </div>
+            
+            {/* Search Bar */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                </svg>
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search Messenger" 
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-3">
-              {messages.length === 0 ? (
-                <div className="text-gray-400 text-center">No messages yet. Start the conversation!</div>
-              ) : (
-                messages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${
-                      msg.from === "Me" ? "justify-end" : "justify-start"
-                    }`}
-                  >
+          {/* Chat List */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Recent Chats */}
+            {chatRooms.length > 0 && (
+              <div className="py-2">
+                {chatRooms.map((room) => {
+                  const isOnline = activeUsers[room.otherParticipantUid];
+                  const isSelected = selectedUser?.uid === room.otherParticipantUid;
+                  
+                  return (
                     <div
-                      className={`px-4 py-2 rounded-xl max-w-[70%] ${
-                        msg.from === "Me"
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-200"
+                      key={room.roomId}
+                      onClick={() => startNewChat(room)}
+                      className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                        isSelected ? "bg-blue-50 border-r-2 border-blue-500" : ""
                       }`}
                     >
-                      <p className="text-sm">{msg.text}</p>
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-lg">
+                            {room.otherParticipantName.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        {isOnline && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                        )}
+                      </div>
+                      
+                      <div className="ml-3 flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {room.otherParticipantName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {room.updatedAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </p>
+                        </div>
+                        {room.lastMessage && (
+                          <p className="text-sm text-gray-600 truncate">
+                            {room.lastMessage.from === (user.displayName || user.email) ? "You: " : ""}
+                            {room.lastMessage.text}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
-            <div className="p-4 border-t flex gap-2">
-              <input
-                value={newMsg}
-                onChange={(e) => setNewMsg(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!isConnected}
-              />
-              <button
-                onClick={sendMessage}
-                disabled={!isConnected || !newMsg.trim()}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Send
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
-            Select a user to start chatting
+            {/* Active Users for New Chats */}
+            {Object.entries(activeUsers).length > 0 && (
+              <div className="py-2 border-t border-gray-200">
+                <div className="px-4 py-2">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Active Now</h3>
+                </div>
+                {Object.entries(activeUsers).map(([uid, u]) => {
+                  const alreadyHaveChat = chatRooms.some(room => room.otherParticipantUid === uid);
+                  
+                  return uid !== user.uid && !alreadyHaveChat && (
+                    <div
+                      key={uid}
+                      onClick={() => startNewChat({ uid, name: u.name })}
+                      className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                        selectedUser?.uid === uid ? "bg-blue-50 border-r-2 border-blue-500" : ""
+                      }`}
+                    >
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-lg">
+                            {u.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                      </div>
+                      
+                      <div className="ml-3 flex-1">
+                        <p className="text-sm font-semibold text-gray-900">{u.name}</p>
+                        <p className="text-sm text-green-600">Active now</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {chatRooms.length === 0 && Object.entries(activeUsers).length <= 1 && (
+              <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.546 20.2A1.3 1.3 0 0 0 3.8 21.454l3.032-.892A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No conversations yet</h3>
+                <p className="text-gray-600 text-sm">Your conversations will appear here when you start chatting.</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        {/* Chat Window */}
+        <div className="flex-1 flex flex-col bg-white">
+          {selectedUser ? (
+            <>
+              {/* Chat Header */}
+              <div className="px-6 py-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-semibold">
+                      {selectedUser.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="ml-3">
+                    <h2 className="text-lg font-semibold text-gray-900">{selectedUser.name}</h2>
+                    <p className="text-sm text-gray-500">
+                      {activeUsers[selectedUser.uid] ? "Active now" : ""}
+                    </p>
+                  </div>
+                  <div className="ml-auto flex items-center space-x-2">
+                    <button className="p-2 hover:bg-gray-100 rounded-full">
+                      <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                      </svg>
+                    </button>
+                    <button className="p-2 hover:bg-gray-100 rounded-full">
+                      <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 2v-7l-4 2z"/>
+                      </svg>
+                    </button>
+                    <button className="p-2 hover:bg-gray-100 rounded-full">
+                      <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+                      <span className="text-white font-bold text-2xl">
+                        {selectedUser.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{selectedUser.name}</h3>
+                    <p className="text-gray-600 mb-4">You're now connected on Messenger.</p>
+                    <p className="text-sm text-gray-500">No messages yet. Start the conversation!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {messages.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex ${msg.from === "Me" ? "justify-end" : "justify-start"}`}
+                      >
+                        <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${msg.from === "Me" ? "flex-row-reverse space-x-reverse" : ""}`}>
+                          {msg.from !== "Me" && (
+                            <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-white text-xs font-semibold">
+                                {selectedUser.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                          <div
+                            className={`px-4 py-2 rounded-2xl ${
+                              msg.from === "Me"
+                                ? "bg-blue-500 text-white rounded-br-md"
+                                : "bg-gray-200 text-gray-900 rounded-bl-md"
+                            }`}
+                          >
+                            <p className="text-sm break-words">{msg.text}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Message Input */}
+              <div className="px-6 py-4 border-t border-gray-200 bg-white">
+                <div className="flex items-end space-x-3">
+                  <button className="p-2 text-blue-500 hover:bg-blue-50 rounded-full">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/>
+                    </svg>
+                  </button>
+                  
+                  <div className="flex-1 relative">
+                    <input
+                      value={newMsg}
+                      onChange={(e) => setNewMsg(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Aa"
+                      className="w-full px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white resize-none text-sm"
+                      disabled={!isConnected}
+                    />
+                    <button className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-blue-500 hover:bg-blue-50 rounded-full">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1V3H9V1L3 7V9H21Z"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <button 
+                    onClick={sendMessage}
+                    disabled={!isConnected || !newMsg.trim()}
+                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-full disabled:text-gray-400 disabled:hover:bg-transparent"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center bg-white">
+              <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.546 20.2A1.3 1.3 0 0 0 3.8 21.454l3.032-.892A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Messages</h2>
+              <p className="text-gray-600 text-center max-w-md">
+                Send private messages to a friend or group. Click on a person from the sidebar to start chatting.  
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
