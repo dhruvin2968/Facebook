@@ -6,6 +6,7 @@ import RegisterPage from "./pages/Register";
 import StartPage from './pages/Start';
 import ProfilePage from './pages/Profile';
 import { ChatDashboard } from './pages/ChatPage';
+import { EditProfile } from './pages/EditProfile';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfilePage />} />
          <Route path="/chat" element={<ChatDashboard />} />
+           <Route path="/edit_profile" element={<EditProfile />} />
       </Routes>
     </Router>
   );

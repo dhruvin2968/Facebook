@@ -264,7 +264,6 @@ export const ChatDashboard = () => {
   if (!user) {
     return (
       <>
-      
         <Headerr/>
         <div className="flex items-center justify-center h-screen bg-gray-50">
           <div className="text-center">

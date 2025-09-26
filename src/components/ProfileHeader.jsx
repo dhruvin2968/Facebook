@@ -1,7 +1,9 @@
 import { Camera, Edit3, ChevronDown, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 export const ProfileHeader = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Posts');
   const [coverUrl, setCoverUrl] = useState(''); // Cover photo URL state
   const [profileUrl, setProfileUrl] = useState(''); // Profile photo URL state
@@ -171,10 +173,10 @@ export const ProfileHeader = () => {
                   <Plus className="w-4 h-4" />
                   <span>Add to story</span>
                 </button>
-                <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold flex items-center space-x-2 transition-colors">
+                <button   onClick={() => navigate("/edit_profile")} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold flex items-center space-x-2 transition-colors">
                   <Edit3 className="w-4 h-4" />
                   <span>Edit profile</span>
-                </button>
+                </button> 
                 <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg transition-colors">
                   <ChevronDown className="w-5 h-5" />
                 </button>

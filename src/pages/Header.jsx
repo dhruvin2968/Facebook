@@ -47,7 +47,7 @@ export const Headerr = () => {
 
   return (
     <header>
-      <nav className="font-serif z-50 relative bg-Bluee shadow-md px-4 py-1">
+      <nav className="font-serif  relative bg-Bluee shadow-md px-4 py-1">
         <div className="max-w-screen-xl flex items-center justify-between mx-auto">
           <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
             <div className="h-10"></div>

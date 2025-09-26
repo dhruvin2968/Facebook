@@ -1,5 +1,6 @@
 import { Navbar } from '../components/Navbar';
 import { Feed } from '../components/Feed';
+import { useState, useEffect } from 'react';
 import { 
   Search, 
   Play, 
@@ -150,8 +151,35 @@ const SidebarRight = () => {
   );
 };
 
-
 const LandingPage = () => {
+   const [userId, setUserId] = useState(null);
+useEffect(() => {
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      setUserId(storedUserId);
+    }
+  }, []);
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Please log in</h2>
+          <p className="text-gray-600 mb-4">You need to be logged in to edit your profile</p>
+          <button 
+            onClick={() => window.location.href = '/login'}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-gray-100 min-h-screen">
       <Navbar />

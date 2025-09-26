@@ -9,6 +9,10 @@ import {
   Menu,} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 export const Navbar = () => {
+  const handleLogout = () => {
+    localStorage.removeItem('userId');
+    window.location.href = '/login'; // or navigate to login page
+  };
   const navigate = useNavigate();
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 fixed top-0 w-full z-50">
@@ -64,6 +68,12 @@ export const Navbar = () => {
             </div>
             <button  onClick={() => navigate("/profile")} className="focus:outline-none">
             <div className="w-8 h-8 bg-blue-600 rounded-full cursor-pointer"></div></button>
+             <button 
+                onClick={handleLogout}
+                className="text-sm text-gray-600 hover:text-gray-800"
+              >
+                Logout
+              </button>
           </div>
         </div>
       </div>
