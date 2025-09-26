@@ -9,8 +9,9 @@ import {
   Settings,
 } from 'lucide-react';
 
-
+import { useNavigate } from 'react-router-dom';
 const PostComposer = () => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
       <div className="flex space-x-3 mb-4">
@@ -29,10 +30,14 @@ const PostComposer = () => {
             </div>
             <span className="text-gray-700 font-medium">Live video</span>
           </div>
-          <div className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer">
-            <Camera className="w-6 h-6 text-green-500" />
-            <span className="text-gray-700 font-medium">Photo/video</span>
-          </div>
+          <div 
+  onClick={() => navigate("/new_post")} 
+  className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer"
+>
+  <Camera className="w-6 h-6 text-green-500" />
+  <span className="text-gray-700 font-medium">Photo/video</span>
+</div>
+
           <div className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer">
             <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
               <span className="text-sm">😊</span>
