@@ -8,6 +8,8 @@ import ProfilePage from "./pages/Profile";
 import { ChatDashboard } from "./pages/ChatPage";
 import { EditProfile } from "./pages/EditProfile";
 import { AddNewPost } from "./pages/NewPost";
+import { FriendProfile } from "./pages/FriendProfile";
+import { Notifications } from "./pages/Notifications";
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
         <Route path="/chat" element={<ChatDashboard />} />
         <Route path="/edit_profile" element={<EditProfile />} />
         <Route path="/new_post" element={<AddNewPost />} />
+        <Route path="/user/:id" element={<FriendProfile />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </Router>
   );

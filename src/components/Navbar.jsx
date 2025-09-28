@@ -61,10 +61,11 @@ export const Navbar = () => {
 </button>
 
 
-              <div className="bg-gray-100 rounded-full p-2 cursor-pointer hover:bg-gray-200 relative">
+             <button 
+  onClick={() => navigate("/notifications")}  className="bg-gray-100 rounded-full p-2 cursor-pointer hover:bg-gray-200 relative">
                 <Bell className="w-4 h-4 text-gray-700" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-              </div>
+              </button>
             </div>
             <button  onClick={() => navigate("/profile")} className="focus:outline-none">
             <div className="w-8 h-8 bg-blue-600 rounded-full cursor-pointer"></div></button>

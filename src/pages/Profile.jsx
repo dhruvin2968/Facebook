@@ -48,7 +48,7 @@ const PostComposer = () => {
       </div>
     </div>
   );
-};
+}; 
 
 
 const ProfilePage = () => {
